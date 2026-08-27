@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Referral Management</title>
+<style>
+:root{
+  --bg:#f7f9fc;--card:#fff;--border:#dfe5ee;--text:#12233f;--muted:#66748a;
+  --blue:#2563eb;--blue2:#1d4ed8;--green:#15803d;--amber:#b45309;--red:#b42318;
+  --shadow:0 8px 24px rgba(20,35,60,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+#app{min-height:100vh;padding:32px 4vw 44px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:24px}
+.brand{font-size:13px;font-weight:800;letter-spacing:.08em;color:var(--blue);text-transform:uppercase}
+h1{font-size:30px;line-height:1.1;margin:8px 0 7px;font-weight:800}
+.subtitle{font-size:15px;color:var(--muted)}
+.live{margin-top:9px;font-size:13px;font-weight:650}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--border);background:#fff;color:var(--text);border-radius:9px;padding:11px 16px;font-weight:700}
+.btn:hover{background:#f8fafc}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:var(--blue2)}
+.btn.danger{border-color:#efc6c1;color:var(--red)}
+.btn.small{padding:6px 9px;font-size:12px;border-radius:7px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+
+.cards{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.card .label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.card .num{font-size:30px;font-weight:800;margin-top:7px}
+.blue{color:var(--blue)}.green{color:var(--green)}.amber{color:var(--amber)}
+
+.toolbar{background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;box-shadow:var(--shadow)}
+input,select,textarea{border:1px solid #d5dce7;background:#fff;color:var(--text);border-radius:9px;padding:0 12px;outline:none}
+input,select{height:44px}
+.toolbar input{flex:1;min-width:280px}
+.toolbar select{min-width:165px}
+input:focus,select:focus,textarea:focus{border-color:#7aa2f7;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+
+.main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(390px,.75fr);gap:18px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;box-shadow:var(--shadow);overflow:hidden}
+.panel-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.panel-head h2{margin:0;font-size:18px}
+.panel-head span{font-size:13px;color:var(--muted)}
+.table-scroll{overflow:auto}
+.table{min-width:1050px}
+.thead,.row{display:grid;grid-template-columns:125px 180px 125px 145px 90px 85px 120px 120px}
+.thead{background:#f5f7fa;color:#68758a;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}
+.cell{padding:13px 12px;border-bottom:1px solid #edf1f5;display:flex;align-items:center;gap:6px;font-size:14px;min-width:0}
+.row{cursor:pointer}
+.row:hover{background:#f8fbff}
+.row.selected{background:#eef5ff}
+.id{font-weight:800;color:var(--blue)}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:750;white-space:nowrap}
+.ok{background:#dcfce7;color:#166534}.warn{background:#fef3c7;color:#92400e}.gray{background:#eef2f6;color:#526174}.red{background:#fee2e2;color:#991b1b}
+.doc-count{font-weight:800;color:var(--blue)}
+.row-actions{display:flex;gap:5px;align-items:center}
+.empty{padding:60px 25px;text-align:center;color:var(--muted);font-size:14px}
+.empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
+
+.details{min-height:500px}
+.detail-body{padding:20px}
+.detail-placeholder{min-height:440px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)}
+.detail-placeholder strong{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+.section-title{font-size:13px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 14px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field.full{grid-column:1/-1}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:650}
+.field .value{font-size:14px;font-weight:700;word-break:break-word}
+.agent-box{margin-top:18px;background:#f4f7ff;border:1px solid #dbe5ff;border-radius:10px;padding:14px;font-size:14px;line-height:1.55}
+.agent-box b{color:var(--blue)}
+.documents{margin-top:22px}
+.doc{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px}
+.doc-info{min-width:0}.doc-name{font-size:14px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.doc-type{font-size:12px;color:var(--muted);margin-top:3px}
+.doc-actions{display:flex;gap:6px;flex-shrink:0}
+.pdf{margin-top:12px;height:430px;border:1px solid var(--border);border-radius:10px;background:#f4f6f8;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#pdfViewer{display:none;width:100%;height:100%;border:0;background:#fff}
+.pdf-placeholder{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,28,48,.42);display:none;align-items:center;justify-content:center;padding:24px;z-index:100}
+.modal-backdrop.show{display:flex}
+.modal{width:min(900px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 25px 80px rgba(0,0,0,.25)}
+.modal-head{padding:19px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{margin:0;font-size:20px}
+.close{border:0;background:transparent;font-size:24px;color:var(--muted)}
+.modal-body{padding:22px}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.edit-field.full{grid-column:1/-1}
+.edit-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.edit-field input,.edit-field textarea,.edit-field select{width:100%;height:44px}
+.edit-field textarea{height:90px;padding:10px 12px;resize:vertical}
+.modal-foot{padding:15px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px}
+.toast{position:fixed;right:22px;bottom:22px;background:#12233f;color:#fff;padding:12px 15px;border-radius:9px;font-size:13px;display:none;z-index:200;box-shadow:0 8px 25px rgba(0,0,0,.18)}
+.toast.show{display:block}
+.toast.error{background:#a51d16}
+
+@media(max-width:1050px){
+  .main{grid-template-columns:1fr}.details{min-height:auto}
+}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){
+  #app{padding:22px 16px 35px}.header{flex-direction:column}.cards{grid-template-columns:repeat(2,1fr)}
+  .fields,.edit-grid{grid-template-columns:1fr}.field.full,.edit-field.full{grid-column:auto}
+}
+@media(max-width:480px){.cards{grid-template-columns:1fr 1fr}.actions{width:100%}.actions .btn{flex:1}}
+</style>
+</head>
+
+<body>
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="brand">Clinical Operations</div>
+      <h1>Referral Management</h1>
+      <div class="subtitle">Review live referral activity, validated data and supporting documents.</div>
+      <div id="liveState" class="live" style="color:var(--amber)">● Connecting to live records...</div>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" class="btn">↻ Refresh</button>
+      <button id="resetBtn" class="btn danger">Reset</button>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Patients</div><div id="patientCount" class="num">0</div></div>
+    <div class="card"><div class="label">Referrals</div><div id="referralCount" class="num blue">0</div></div>
+    <div class="card"><div class="label">Documents</div><div id="documentCount" class="num">0</div></div>
+    <div class="card"><div class="label">New Today</div><div id="newTodayCount" class="num">0</div></div>
+    <div class="card"><div class="label">Human Validated</div><div id="humanValidatedCount" class="num green">0</div></div>
+    <div class="card"><div class="label">Agent Validated</div><div id="agentValidatedCount" class="num blue">0</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" placeholder="Search patient, MRN, referral, provider, NPI, specialty...">
+    <select id="statusFilter"><option value="">All statuses</option></select>
+    <select id="specialtyFilter"><option value="">All specialties</option></select>
+    <select id="documentTypeFilter"><option value="">All document types</option></select>
+  </div>
+
+  <div class="main">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Referrals</h2>
+          <span id="recordSummary">Live referral records</span>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <div class="table">
+          <div class="thead">
+            <div class="cell">Patient</div>
+            <div class="cell">Specialty</div>
+            <div class="cell">Referral ID</div>
+            <div class="cell">Referring Provider</div>
+            <div class="cell">Urgency</div>
+            <div class="cell">Documents</div>
+            <div class="cell">Status</div>
+            <div class="cell">Actions</div>
+          </div>
+          <div id="rows"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel details">
+      <div class="panel-head">
+        <div>
+          <h2>Referral Details</h2>
+          <span id="detailSubtitle">Select a row to view the record</span>
+        </div>
+      </div>
+      <div id="detailBody" class="detail-body">
+        <div class="detail-placeholder">
+          <div><strong>Select a referral</strong>Referral details and documents will appear here after you select a record.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="editBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Edit Referral</h2>
+      <button class="close" id="closeEdit">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="editGrid" class="edit-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cancelEdit">Cancel</button>
+      <button class="btn primary" id="saveEdit">Update Supabase</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     EMBEDDED SUPABASE CONFIG
+     The publishable/anon key is intentionally embedded because
+     this is a browser-hosted POC. Never use a service-role key here.
+     ============================================================ */
+  const SUPABASE_URL = "https://wysnjsnbraiwopolgxgv.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_rUdw6p2HW394IjHoMexMXw_GhEYimpQ";
+
+  /* Only the three requested Edge Functions are used. */
+  const FUNCTIONS_BASE = SUPABASE_URL + "/functions/v1";
+  const FUNCTIONS = {
+    ingest: FUNCTIONS_BASE + "/maestro-ingest2o",
+    documentUrl: FUNCTIONS_BASE + "/document-url2o",
+    reset: FUNCTIONS_BASE + "/reset-referrals2o"
+  };
+
+  const TABLES = {
+    patients: "patient_s",
+    referrals: "referral_s",
+    documents: "document_s"
+  };
+
+  let patients = [];
+  let referrals = [];
+  let documents = [];
+  let view = [];
+  let selected = null;
+  let editing = null;
+
+  const $ = id => document.getElementById(id);
+  const clean = v => v === null || v === undefined ? "" : String(v).trim();
+
+  function headers(extra){
+    return Object.assign({
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": "application/json"
+    }, extra || {});
+  }
+
+  function toast(message, error){
+    const el = $("toast");
+    el.textContent = message;
+    el.className = "toast show" + (error ? " error" : "");
+    clearTimeout(window.__toast);
+    window.__toast = setTimeout(() => el.className = "toast", 3200);
+  }
+
+  function esc(v){
+    return clean(v).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  async function supabaseSelect(table){
+    const url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
+    const r = await fetch(url, {headers:headers()});
+    const body = await r.json().catch(()=>[]);
+    if(!r.ok) throw new Error(body && body.message ? body.message : "Unable to read " + table);
+    return Array.isArray(body) ? body : [];
+  }
+
+  async function supabaseUpdate(table, id, payload){
+    const url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + encodeURIComponent(id);
+    const r = await fetch(url, {
+      method:"PATCH",
+      headers:headers({"Prefer":"return=representation"}),
+      body:JSON.stringify(payload)
+    });
+    const body = await r.json().catch(()=>[]);
+    if(!r.ok) throw new Error(body && (body.message || body.error) ? (body.message || body.error) : "Unable to update " + table);
+    return body;
+  }
+
+  async function supabaseDelete(table, id){
+    const url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + encodeURIComponent(id);
+    const r = await fetch(url, {
+      method:"DELETE",
+      headers:headers({"Prefer":"return=representation"})
+    });
+    const body = await r.json().catch(()=>[]);
+    if(!r.ok) throw new Error(body && (body.message || body.error) ? (body.message || body.error) : "Unable to delete " + table);
+    return body;
+  }
+
+  function first(obj, keys){
+    for(const k of keys){
+      if(obj && obj[k] !== undefined && obj[k] !== null && clean(obj[k]) !== "") return obj[k];
+    }
+    return "";
+  }
+
+  function normalize(){
+    return referrals.map((r, index) => {
+      const patientId = first(r, ["patient_id","patientId"]);
+      const mrn = first(r, ["mrn","patient_mrn","patientMRN"]);
+      let p = patients.find(x => patientId && String(x.id) === String(patientId));
+      if(!p && mrn) p = patients.find(x => String(first(x,["mrn","patient_mrn","patientMRN"])) === String(mrn));
+
+      const rid = first(r, ["id","referral_id","referralId"]) || ("ROW-" + index);
+      const referralId = first(r,["referral_id","referralId","external_referral_id"]) || rid;
+      const docs = documents.filter(d => {
+        const drid = first(d,["referral_id","referralId"]);
+        const dpid = first(d,["patient_id","patientId"]);
+        return (drid && String(drid) === String(rid)) ||
+               (drid && String(drid) === String(referralId)) ||
+               (dpid && p && String(dpid) === String(p.id));
+      });
+
+      return {
+        raw:r, patient:p || {},
+        rowId:rid, referralId,
+        name:first(r,["patient_name","patientName","name"]) || first(p,["name","patient_name","patientName"]),
+        dob:first(r,["dob","date_of_birth","dateOfBirth"]) || first(p,["dob","date_of_birth","dateOfBirth"]),
+        mrn:mrn || first(p,["mrn","patient_mrn","patientMRN"]),
+        type:first(r,["referral_type","specialty","type","referred_specialty","referredSpecialty"]),
+        documentType:first(r,["document_type","documentType"]) || first(docs[0],["document_type","documentType"]),
+        date:first(r,["referral_date","referralDate","date","created_at","createdAt"]),
+        provider:first(r,["referring_provider","referringProvider","provider"]),
+        providerNPI:first(r,["provider_npi","providerNPI","npi"]),
+        receivingProvider:first(r,["receiving_provider","receivingProvider"]),
+        urgency:first(r,["urgency","priority"]),
+        diagnosis:first(r,["diagnosis","diag"]),
+        icd10:first(r,["icd10","icd_10","primary_icd10","primaryICD10"]),
+        cptCode:first(r,["cpt_code","cptCode","procedure_code","procedureCode"]),
+        reason:first(r,["reason","reason_for_referral","reasonForReferral"]),
+        requestedService:first(r,["requested_service","requestedService"]),
+        requestedProcedure:first(r,["requested_procedure","requestedProcedure"]),
+        chiefComplaint:first(r,["chief_complaint","chiefComplaint"]),
+        clinicalSummary:first(r,["clinical_summary","clinicalSummary"]),
+        agentSummary:first(r,["agent_summary","agentSummary"]),
+        epicRecordCreatedDate:first(r,["epic_record_created_date","epicRecordCreatedDate"]),
+        validation:first(r,["validation_status","validationStatus","validation"]),
+        status:first(r,["processing_status","processingStatus","status"]),
+        docs
+      };
+    });
+  }
+
+  function getDocId(d){ return first(d,["id","document_id","documentId"]); }
+
+  function isToday(value){
+    const raw = clean(value);
+    if(!raw) return false;
+    const dt = new Date(raw);
+    if(Number.isNaN(dt.getTime())) {
+      // Also support common date-only strings such as 08/27/2026 or 27/08/2026.
+      const m = raw.match(/^(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})$/);
+      if(!m) return false;
+      const a=Number(m[1]), b=Number(m[2]), y=Number(m[3]);
+      const localToday = new Date();
+      return (a===localToday.getMonth()+1 && b===localToday.getDate() && y===localToday.getFullYear()) ||
+             (b===localToday.getMonth()+1 && a===localToday.getDate() && y===localToday.getFullYear());
+    }
+    const now = new Date();
+    return dt.getFullYear()===now.getFullYear() &&
+           dt.getMonth()===now.getMonth() &&
+           dt.getDate()===now.getDate();
+  }
+
+  function validationKind(r){
+    const raw = r.raw || {};
+    const combined = [
+      r.validation, r.status,
+      first(raw,["validation_status","validationStatus","validation_result","validationResult"]),
+      first(raw,["validated_by","validatedBy","validation_source","validationSource"]),
+      first(raw,["review_status","reviewStatus"])
+    ].map(clean).join(" ").toLowerCase();
+
+    const humanFlag = first(raw,[
+      "human_validated","humanValidated","is_human_validated","isHumanValidated"
+    ]);
+    const agentFlag = first(raw,[
+      "agent_validated","agentValidated","is_agent_validated","isAgentValidated"
+    ]);
+
+    if(["true","1","yes"].includes(String(humanFlag).toLowerCase()) ||
+       combined.includes("human_validated") ||
+       combined.includes("human validated") ||
+       combined.includes("hitl_validated") ||
+       combined.includes("hitl validated") ||
+       combined.includes("human-validation") ||
+       combined.includes("human validation"))
+      return "human";
+
+    if(["true","1","yes"].includes(String(agentFlag).toLowerCase()) ||
+       combined.includes("agent_validated") ||
+       combined.includes("agent validated") ||
+       combined.includes("agent-validation") ||
+       combined.includes("agent validation"))
+      return "agent";
+
+    return "";
+  }
+
+  function updateCards(data){
+    $("patientCount").textContent = patients.length;
+    $("referralCount").textContent = data.length;
+    $("documentCount").textContent = documents.length;
+
+    const newToday = data.filter(r =>
+      isToday(first(r.raw,[
+        "created_at","createdAt","epic_record_created_date",
+        "epicRecordCreatedDate","referral_date","referralDate"
+      ]) || r.date)
+    ).length;
+
+    const humanValidated = data.filter(r => validationKind(r)==="human").length;
+    const agentValidated = data.filter(r => validationKind(r)==="agent").length;
+
+    $("newTodayCount").textContent = newToday;
+    $("humanValidatedCount").textContent = humanValidated;
+    $("agentValidatedCount").textContent = agentValidated;
+  }
+
+  function populateFilters(data){
+    const currentS=$("statusFilter").value, currentT=$("specialtyFilter").value, currentD=$("documentTypeFilter").value;
+    const unique = key => [...new Set(data.map(r=>clean(r[key])).filter(Boolean))].sort();
+    $("statusFilter").innerHTML='<option value="">All statuses</option>'+unique("status").map(x=>`<option>${esc(x)}</option>`).join("");
+    $("specialtyFilter").innerHTML='<option value="">All specialties</option>'+unique("type").map(x=>`<option>${esc(x)}</option>`).join("");
+    $("documentTypeFilter").innerHTML='<option value="">All document types</option>'+unique("documentType").map(x=>`<option>${esc(x)}</option>`).join("");
+    $("statusFilter").value=currentS; $("specialtyFilter").value=currentT; $("documentTypeFilter").value=currentD;
+  }
+
+  function render(){
+    const q=clean($("search").value).toLowerCase();
+    const s=$("statusFilter").value, t=$("specialtyFilter").value, d=$("documentTypeFilter").value;
+    view=normalize().filter(r=>{
+      const searchable=[r.referralId,r.name,r.mrn,r.provider,r.providerNPI,r.type,r.diagnosis,r.icd10].map(clean).join(" ").toLowerCase();
+      return (!q||searchable.includes(q))&&(!s||r.status===s)&&(!t||r.type===t)&&(!d||r.documentType===d);
+    });
+    updateCards(normalize()); populateFilters(normalize());
+    $("recordSummary").textContent=view.length+" live referral record"+(view.length===1?"":"s");
+    const rows=$("rows");
+    if(!view.length){
+      rows.innerHTML='<div class="empty"><strong>No referral records</strong>Live referral details will appear here when records are available.</div>';
+      return;
+    }
+    rows.innerHTML=view.map(r=>{
+      const val=clean(r.validation), stat=clean(r.status);
+      const valClass=val.toLowerCase().includes("hitl")||val.toLowerCase().includes("review")?"warn":"ok";
+      const statClass=stat.toLowerCase().includes("reject")?"red":stat.toLowerCase().includes("complete")?"ok":"gray";
+      return `<div class="row ${selected && String(selected.rowId)===String(r.rowId)?"selected":""}" data-row="${esc(r.rowId)}">
+        <div class="cell"><b>${esc(r.name)||"—"}</b></div>
+        <div class="cell">${r.type?`<span class="pill gray">${esc(r.type)}</span>`:"—"}</div>
+        <div class="cell id">${esc(r.referralId)||"—"}</div>
+        <div class="cell">${esc(r.provider)||"—"}</div>
+        <div class="cell">${esc(r.urgency)||"—"}</div>
+        <div class="cell doc-count">📄 ${r.docs.length}</div>
+        <div class="cell">${stat?`<span class="pill ${statClass}">${esc(stat)}</span>`:"—"}</div>
+        <div class="cell row-actions">
+          <button class="btn small edit-row" data-id="${esc(r.rowId)}">Edit</button>
+          <button class="btn small danger delete-row" data-id="${esc(r.rowId)}">Delete</button>
+        </div>
+      </div>`;
+    }).join("");
+
+    rows.querySelectorAll(".row").forEach(el=>el.addEventListener("click",e=>{
+      if(e.target.closest("button")) return;
+      const r=view.find(x=>String(x.rowId)===String(el.dataset.row)); showDetail(r);
+    }));
+    rows.querySelectorAll(".edit-row").forEach(b=>b.addEventListener("click",e=>{
+      e.stopPropagation(); const r=view.find(x=>String(x.rowId)===String(b.dataset.id)); openEdit(r);
+    }));
+    rows.querySelectorAll(".delete-row").forEach(b=>b.addEventListener("click",e=>{
+      e.stopPropagation(); const r=view.find(x=>String(x.rowId)===String(b.dataset.id)); deleteReferral(r);
+    }));
+  }
+
+  function field(label,value,full){
+    if(!clean(value)) return "";
+    return `<div class="field ${full?"full":""}"><label>${esc(label)}</label><div class="value">${esc(value)}</div></div>`;
+  }
+
+  function showDetail(r){
+    if(!r) return;
+    selected=r; render();
+    $("detailSubtitle").textContent=r.referralId+" • "+(r.name||"Patient");
+    const fields=[
+      field("Patient Name",r.name),field("DOB",r.dob),field("MRN",r.mrn),
+      field("Document Type",r.documentType),field("Specialty",r.type),field("Referral Date",r.date),
+      field("Referring Provider",r.provider),field("Provider NPI",r.providerNPI),
+      field("Receiving Provider",r.receivingProvider),field("Urgency",r.urgency),
+      field("Diagnosis",r.diagnosis),field("ICD-10",r.icd10),field("CPT / Procedure Code",r.cptCode),
+      field("Requested Service",r.requestedService),field("Requested Procedure",r.requestedProcedure),
+      field("Reason",r.reason,true),field("Chief Complaint",r.chiefComplaint),
+      field("Epic Record Created Date",r.epicRecordCreatedDate),field("Validation",r.validation),field("Status",r.status),
+      field("Clinical Summary",r.clinicalSummary,true)
+    ].join("");
+    const docs=r.docs;
+    $("detailBody").innerHTML=`
+      <div class="section-title">Agent Validated Data</div>
+      <div class="fields">${fields}</div>
+      ${r.agentSummary?`<div class="agent-box"><b>Agent Summary</b><br>${esc(r.agentSummary)}</div>`:""}
+      <div class="documents">
+        <div class="section-title">Documents</div>
+        <div id="detailDocs">${docs.length?docs.map(d=>{
+          const id=getDocId(d), name=first(d,["file_name","fileName","name"])||"Document";
+          const type=first(d,["document_type","documentType"]);
+          return `<div class="doc">
+            <div class="doc-info"><div class="doc-name">📄 ${esc(name)}</div><div class="doc-type">${esc(type)||"Document"}</div></div>
+            <div class="doc-actions">
+              ${id?`<button class="btn small view-pdf" data-id="${esc(id)}">View</button>`:""}
+              ${id?`<button class="btn small danger delete-doc" data-id="${esc(id)}">Delete</button>`:""}
+            </div>
+          </div>`;
+        }).join(""):'<div class="empty" style="padding:20px">No documents attached.</div>'}</div>
+        <div class="pdf"><iframe id="pdfViewer" title="Live referral document"></iframe><div id="pdfPlaceholder" class="pdf-placeholder">Select <b>View</b> to open the live stored document.</div></div>
+      </div>`;
+    $("detailBody").querySelectorAll(".view-pdf").forEach(b=>b.addEventListener("click",()=>viewDocument(b.dataset.id,b)));
+    $("detailBody").querySelectorAll(".delete-doc").forEach(b=>b.addEventListener("click",()=>deleteDocument(b.dataset.id)));
+  }
+
+  async function viewDocument(id,button){
+    button.disabled=true;
+    try{
+      const r=await fetch(FUNCTIONS.documentUrl+"?id="+encodeURIComponent(id),{headers:headers()});
+      const body=await r.json().catch(()=>({}));
+      if(!r.ok||!body.url) throw new Error(body.error||body.message||"Unable to retrieve document");
+      $("pdfViewer").src=body.url; $("pdfViewer").style.display="block"; $("pdfPlaceholder").style.display="none";
+    }catch(e){toast(e.message||"Unable to open document",true)}
+    finally{button.disabled=false}
+  }
+
+  function editInput(label,key,value,full,type){
+    if(type==="textarea") return `<div class="edit-field ${full?"full":""}"><label>${esc(label)}</label><textarea data-key="${esc(key)}">${esc(value)}</textarea></div>`;
+    return `<div class="edit-field ${full?"full":""}"><label>${esc(label)}</label><input data-key="${esc(key)}" value="${esc(value)}"></div>`;
+  }
+
+  function openEdit(r){
+    if(!r) return;
+    editing=r;
+    $("editGrid").innerHTML=[
+      editInput("Patient Name","patient_name",r.name),
+      editInput("DOB","dob",r.dob),
+      editInput("MRN","mrn",r.mrn),
+      editInput("Document Type","document_type",r.documentType),
+      editInput("Specialty","referral_type",r.type),
+      editInput("Referral Date","referral_date",r.date),
+      editInput("Referring Provider","referring_provider",r.provider),
+      editInput("Provider NPI","provider_npi",r.providerNPI),
+      editInput("Receiving Provider","receiving_provider",r.receivingProvider),
+      editInput("Urgency","urgency",r.urgency),
+      editInput("Diagnosis","diagnosis",r.diagnosis),
+      editInput("ICD-10","icd10",r.icd10),
+      editInput("CPT / Procedure Code","procedure_code",r.cptCode),
+      editInput("Requested Service","requested_service",r.requestedService),
+      editInput("Requested Procedure","requested_procedure",r.requestedProcedure),
+      editInput("Reason","reason_for_referral",r.reason,true,"textarea"),
+      editInput("Chief Complaint","chief_complaint",r.chiefComplaint),
+      editInput("Epic Record Created Date","epic_record_created_date",r.epicRecordCreatedDate),
+      editInput("Clinical Summary","clinical_summary",r.clinicalSummary,true,"textarea"),
+      editInput("Agent Summary","agent_summary",r.agentSummary,true,"textarea")
+    ].join("");
+    $("editBackdrop").classList.add("show");
+  }
+
+  function closeEdit(){editing=null;$("editBackdrop").classList.remove("show")}
+
+  async function saveEdit(){
+    if(!editing) return;
+    const payload={};
+    $("editGrid").querySelectorAll("[data-key]").forEach(el=>payload[el.dataset.key]=el.value.trim());
+    const btn=$("saveEdit"); btn.disabled=true; btn.textContent="Updating...";
+    try{
+      /*
+       * The UI uses the actual referral_s row id for the PATCH.
+       * Patient fields are updated separately when a matching patient_s
+       * row can be identified. RLS UPDATE policies are required.
+       */
+      const referralPayload={
+        referral_id: payload.referral_id || editing.raw.referral_id || editing.referralId,
+        document_type:payload.document_type,
+        referral_type:payload.referral_type,
+        referral_date:payload.referral_date,
+        referring_provider:payload.referring_provider,
+        provider_npi:payload.provider_npi,
+        receiving_provider:payload.receiving_provider,
+        urgency:payload.urgency,
+        diagnosis:payload.diagnosis,
+        icd10:payload.icd10,
+        procedure_code:payload.procedure_code,
+        requested_service:payload.requested_service,
+        requested_procedure:payload.requested_procedure,
+        reason_for_referral:payload.reason_for_referral,
+        chief_complaint:payload.chief_complaint,
+        epic_record_created_date:payload.epic_record_created_date,
+        clinical_summary:payload.clinical_summary,
+        agent_summary:payload.agent_summary
+      };
+      Object.keys(referralPayload).forEach(k=>{if(referralPayload[k]==="") delete referralPayload[k]});
+      await supabaseUpdate(TABLES.referrals,editing.rowId,referralPayload);
+
+      const pid=first(editing.patient,["id"]);
+      if(pid){
+        const patientPayload={patient_name:payload.patient_name,dob:payload.dob,mrn:payload.mrn};
+        Object.keys(patientPayload).forEach(k=>{if(patientPayload[k]==="") delete patientPayload[k]});
+        await supabaseUpdate(TABLES.patients,pid,patientPayload);
+      }
+      closeEdit(); await loadData(); toast("Referral updated in Supabase.");
+      if(selected) {
+        const fresh=normalize().find(x=>String(x.rowId)===String(selected.rowId));
+        if(fresh) showDetail(fresh);
+      }
+    }catch(e){toast(e.message||"Update failed",true)}
+    finally{btn.disabled=false;btn.textContent="Update Supabase"}
+  }
+
+  async function deleteReferral(r){
+    if(!r) return;
+    if(!confirm("Delete this referral and its patient record? This cannot be undone.")) return;
+    try{
+      for(const d of r.docs){
+        const id=getDocId(d);
+        if(id) await supabaseDelete(TABLES.documents,id);
+      }
+      await supabaseDelete(TABLES.referrals,r.rowId);
+      const pid=first(r.patient,["id"]);
+      if(pid) await supabaseDelete(TABLES.patients,pid);
+      selected=null; await loadData(); $("detailBody").innerHTML='<div class="detail-placeholder"><div><strong>Select a referral</strong>Referral details and documents will appear here after you select a record.</div></div>';
+      toast("Referral deleted.");
+    }catch(e){toast(e.message||"Delete failed. Check Supabase DELETE policy.",true)}
+  }
+
+  async function deleteDocument(id){
+    if(!id||!confirm("Delete this document record?")) return;
+    try{
+      await supabaseDelete(TABLES.documents,id);
+      await loadData();
+      const fresh=selected?normalize().find(x=>String(x.rowId)===String(selected.rowId)):null;
+      if(fresh) showDetail(fresh); else render();
+      toast("Document record deleted.");
+    }catch(e){toast(e.message||"Document delete failed. Check Supabase DELETE policy.",true)}
+  }
+
+  async function resetData(){
+    if(!confirm("Reset ALL patient, referral and document records? This cannot be undone.")) return;
+    const b=$("resetBtn");b.disabled=true;b.textContent="Resetting...";
+    try{
+      const r=await fetch(FUNCTIONS.reset,{
+        method:"POST",headers:headers(),body:JSON.stringify({confirm:true})
+      });
+      const body=await r.json().catch(()=>({}));
+      if(!r.ok||body.success===false) throw new Error(body.error||body.message||"Reset failed");
+      patients=[];referrals=[];documents=[];selected=null;render();
+      $("detailBody").innerHTML='<div class="detail-placeholder"><div><strong>Select a referral</strong>Referral details and documents will appear here after you select a record.</div></div>';
+      toast("All referral management data was reset.");
+    }catch(e){toast(e.message||"Reset failed",true)}
+    finally{b.disabled=false;b.textContent="Reset"}
+  }
+
+  async function loadData(){
+    $("liveState").textContent="● Loading live records...";
+    $("liveState").style.color="var(--amber)";
+    try{
+      const [p,r,d]=await Promise.all([
+        supabaseSelect(TABLES.patients),
+        supabaseSelect(TABLES.referrals),
+        supabaseSelect(TABLES.documents)
+      ]);
+      patients=p;referrals=r;documents=d;
+      render();
+      $("liveState").textContent="● Live Supabase records connected";
+      $("liveState").style.color="var(--green)";
+    }catch(e){
+      patients=[];referrals=[];documents=[];render();
+      $("liveState").textContent="● Live data read failed";
+      $("liveState").style.color="var(--red)";
+      toast(e.message||"Unable to load live records",true);
+      console.error(e);
+    }
+  }
+
+  $("refreshBtn").addEventListener("click",loadData);
+  $("resetBtn").addEventListener("click",resetData);
+  $("closeEdit").addEventListener("click",closeEdit);
+  $("cancelEdit").addEventListener("click",closeEdit);
+  $("saveEdit").addEventListener("click",saveEdit);
+  $("editBackdrop").addEventListener("click",e=>{if(e.target===$("editBackdrop"))closeEdit()});
+  ["search","statusFilter","specialtyFilter","documentTypeFilter"].forEach(id=>{
+    $(id).addEventListener("input",render);$(id).addEventListener("change",render);
+  });
+
+  render();
+  loadData();
+})();
+</script>
+</body>
+</html>
